@@ -40,6 +40,17 @@ export async function POST(request: Request) {
     const rawBody = await request.text(); // Read as raw text
     console.log("🔍 Raw Body:", rawBody);
 
+
+    const body = JSON.parse(rawBody);
+
+    if (!body.message || !body.message.data) {
+      return NextResponse.json({ error: "Invalid Pub/Sub message" }, { status: 400 });
+    }
+
+    // Decode the Base64-encoded message data
+    const decodedMessage = Buffer.from(body.message.data, "base64").toString("utf-8");
+
+    console.log("✅ Decoded Pub/Sub Message:", decodedMessage);
     // const body = JSON.parse(rawBody);
     
     // // ✅ Parse Pub/Sub message
