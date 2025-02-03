@@ -38,10 +38,12 @@ export async function POST(request: Request) {
     // }
 
     const rawBody = await request.text(); // Read as raw text
-    console.log("🔍 Raw Body:", rawBody);
+    // console.log("🔍 Raw Body:", rawBody);
 
+    const body = JSON.parse(rawBody);
+    
     // ✅ Parse Pub/Sub message
-    const body = await request.json();
+
     if (!body.message || !body.message.data) {
       return NextResponse.json({ error: "Invalid Pub/Sub message" }, { status: 400 });
     }
