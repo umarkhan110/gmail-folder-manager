@@ -173,7 +173,7 @@ export async function POST(request: Request) {
 
         const parsedData = JSON.parse(decodedMessage);
         const historyId = parsedData.historyId;
-        
+
         if (!historyId) {
             console.error("No historyId in Google notification");
             return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
@@ -205,7 +205,7 @@ export async function POST(request: Request) {
             startHistoryId: String(historyId), // Ensure it's a string
         });
 
-        console.log("📨 Gmail History Changes:", history.data);
+        // console.log("📨 Gmail History Changes:", history.data);
 
         // Process the first message change in the history (if any)
         if (history.data.history && history.data.history.length > 0) {
@@ -217,14 +217,45 @@ export async function POST(request: Request) {
                     id: messageChange.id!,
                     format: "full",
                 });
-                console.log(message);
+                // console.log(message);
                 const headers = message.data.payload?.headers || [];
                 const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
-                const body2 = cleanEmailContent(message.data.snippet || "");
+                const body = cleanEmailContent(message.data.snippet || "");
 
                 console.log("📧 New Email:");
                 console.log(`Subject: ${subject}`);
-                console.log(`Body: ${body2}`);
+                console.log(`Body: ${body}`);
+
+                // ✅ Fetch user folders (Gmail Labels)
+                const labels = await gmail.users.labels.list({ userId: "me" });
+
+                // ✅ Match folders for AI-based email categorization
+                const folderDescriptions = await prisma.folderDescription.findMany();
+                const availableFolders = folderDescriptions.filter((desc) =>
+                    labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
+                );
+console.log(availableFolders)
+                const suggestedFolder = await analyzeFolderMatch({ subject, body }, availableFolders, false);
+
+                console.log(`📂 Suggested Folder: ${suggestedFolder}`);
+
+                // ✅ Move Email to Suggested Folder
+                if (suggestedFolder) {
+                    const targetLabel = labels.data.labels?.find(
+                        (l) => l.name?.toLowerCase() === suggestedFolder.toLowerCase()
+                    );
+
+                    if (targetLabel) {
+                        await gmail.users.messages.modify({
+                            userId: "me",
+                            id: messageChange.id!,
+                            requestBody: { addLabelIds: [targetLabel.id!] },
+                        });
+                        console.log(`✅ Email moved to folder: ${suggestedFolder}`);
+                    } else {
+                        console.log(`⚠️ Folder "${suggestedFolder}" not found.`);
+                    }
+                }
 
                 processedMessages.set(historyId, currentTimestamp);
             }

@@ -38,7 +38,7 @@ export async function analyzeFolderMatch(
   // Filter folders based on the showSystemFolders setting
   const availableFolders = showSystemFolders 
     ? folders 
-    : folders.filter(folder => !SYSTEM_FOLDERS.includes(folder.displayName.toLowerCase()));
+    : folders.filter((folder:any) => folder.type !== 'system');
 
   // If no folders available, return null
   if (availableFolders.length === 0) {
