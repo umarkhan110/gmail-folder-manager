@@ -14,20 +14,20 @@ export async function POST(request: Request) {
   console.log("\n=== Incoming Gmail Pub/Sub Notification ===");
 
   // ✅ Google Pub/Sub verification request handling
-  if (request.headers.get("X-Goog-Resource-State") === "sync") {
-    console.log("Google Pub/Sub Verification Request");
-    return new Response("OK", { status: 200 });
-  }
+//   if (request.headers.get("X-Goog-Resource-State") === "sync") {
+//     console.log("Google Pub/Sub Verification Request");
+//     return new Response("OK", { status: 200 });
+//   }
 
-  // ✅ Validation token for subscription verification
-  const validationToken = new URL(request.url).searchParams.get("validationToken");
-  if (validationToken) {
-    console.log("Received validation request:", validationToken);
-    return new Response(validationToken, {
-      status: 200,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
+//   // ✅ Validation token for subscription verification
+//   const validationToken = new URL(request.url).searchParams.get("validationToken");
+//   if (validationToken) {
+//     console.log("Received validation request:", validationToken);
+//     return new Response(validationToken, {
+//       status: 200,
+//       headers: { "Content-Type": "text/plain" },
+//     });
+//   }
 
   try {
     // ✅ Verify Google Pub/Sub JWT token (to ensure request is from Google)
