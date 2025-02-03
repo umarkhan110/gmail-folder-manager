@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model FolderDescription {
+  id          String   @id
+  displayName String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+}
+
+model UserSubscription {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  isSubscribed      Boolean   @default(false)
+  licenseKey        String?   
+  licenseExpiresAt  DateTime?
+  provider           String?
+  // Microsoft Graph webhook subscription fields
+  webhookId         String?   @unique  
+  webhookExpiresAt  DateTime? 
+  lastWebhookRenewal DateTime?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model License {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  isRedeemed  Boolean   @default(false)
+  redeemedBy  String    // Store as comma-separated list: "user1@email.com,user2@email.com"
+  redeemedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  maxUses     Int?      // Maximum number of times this key can be used
+  usedCount   Int       @default(0)
+}
+
+model Token {
+  id    String @id
+  value String
+}
