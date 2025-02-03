@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             userId: "me",
             startHistoryId: historyId,
         });
-
+console.log(history)
         if (!history.data.history) {
             console.log("✅ No new emails found.");
             return NextResponse.json({ success: true });
@@ -85,11 +85,11 @@ export async function POST(request: Request) {
 
         //   for (const msg of record.messages) {
         //     // ✅ Deduplicate message processing
-        //     if (processedMessages.has(msg.id!)) {
-        //       console.log(`Skipping duplicate Gmail message: ${msg.id}`);
-        //       continue;
-        //     }
-        //     processedMessages.set(msg.id!, Date.now());
+        //     // if (processedMessages.has(msg.id!)) {
+        //     //   console.log(`Skipping duplicate Gmail message: ${msg.id}`);
+        //     //   continue;
+        //     // }
+        //     // processedMessages.set(msg.id!, Date.now());
 
         //     // ✅ Fetch email details
         //     const message = await gmail.users.messages.get({
