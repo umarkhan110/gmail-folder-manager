@@ -37,10 +37,7 @@ export async function POST(request: Request) {
         //   return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         // }
 
-        const rawBody = await request.text(); // Read as raw text
-        // console.log("🔍 Raw Body:", rawBody);
-
-
+        const rawBody = await request.text();
         const body = JSON.parse(rawBody);
 
         if (!body.message || !body.message.data) {
@@ -50,57 +47,37 @@ export async function POST(request: Request) {
         // Decode the Base64-encoded message data
         const decodedMessage = Buffer.from(body.message.data, "base64").toString("utf-8");
 
-        let parsedData;
-            try {
-            parsedData = JSON.parse(decodedMessage);
-            console.log("✅ Parsed Pub/Sub Message:", parsedData.historyId);
+        const parsedData = JSON.parse(decodedMessage);
 
-            const historyId = parsedData.historyId;
-            if (!historyId) {
-                console.error("No historyId in Google notification");
-                return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
-            }
-            // ✅ Get OAuth Token
-            const accessToken = await getStoredToken();
-            if (!accessToken) {
-                console.error("No valid access token available");
-                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-            }
-
-            // ✅ Authenticate Gmail API
-            const auth = new google.auth.OAuth2();
-            auth.setCredentials({ access_token: accessToken });
-            const gmail = google.gmail({ version: "v1", auth });
-
-            // ✅ Fetch recent Gmail changes
-            const history = await gmail.users.history.list({
-                userId: "me",
-                startHistoryId: historyId,
-            });
-
-            // if (!history.data.history) {
-            //     console.log("✅ No new emails found.");
-            //     return NextResponse.json({ success: true });
-            // }
-
-            // console.log("📨 Gmail History Changes:", history.data);
-
-
-        } catch (e) {
-            console.error("❌ Decoded message is not valid JSON:", e);
+        const historyId = parsedData.historyId;
+        if (!historyId) {
+            console.error("No historyId in Google notification");
+            return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
+        }
+        // ✅ Get OAuth Token
+        const accessToken = await getStoredToken();
+        if (!accessToken) {
+            console.error("No valid access token available");
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // const body = JSON.parse(rawBody);
+        // ✅ Authenticate Gmail API
+        const auth = new google.auth.OAuth2();
+        auth.setCredentials({ access_token: accessToken });
+        const gmail = google.gmail({ version: "v1", auth });
 
-        // // ✅ Parse Pub/Sub message
+        // ✅ Fetch recent Gmail changes
+        const history = await gmail.users.history.list({
+            userId: "me",
+            startHistoryId: historyId,
+        });
 
-        // if (!body.message || !body.message.data) {
-        //   return NextResponse.json({ error: "Invalid Pub/Sub message" }, { status: 400 });
-        // }
+        if (!history.data.history) {
+            console.log("✅ No new emails found.");
+            return NextResponse.json({ success: true });
+        }
 
-        // const messageData = JSON.parse(Buffer.from(body.message.data, "base64").toString("utf-8"));
-        // console.log("📩 Received Gmail Notification:", messageData);
-
+        console.log("📨 Gmail History Changes:", history.data);
 
 
         // for (const record of history.data.history) {
@@ -164,7 +141,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("❌ Error processing notification:", error);
+        console.error("❌ Error processing pubsub notification:", error);
         return NextResponse.json({ error: "Failed to process notification" }, { status: 500 });
     }
 }
