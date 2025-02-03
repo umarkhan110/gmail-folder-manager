@@ -4,7 +4,6 @@ import { getStoredToken } from '@/lib/tokenStore';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { analyzeFolderMatch } from '@/lib/openai-service';
 import { cleanEmailContent } from '@/lib/emailParser';
-import { google } from 'googleapis';
 
 // Keep track of recently processed message IDs
 const processedMessages = new Map<string, number>();
@@ -21,11 +20,7 @@ function stripHtml(html: string): string {
 
 export async function POST(request: Request) {
   console.log('\n=== Incoming Notification Request ===');
-
-  if (request.headers.get('X-Goog-Resource-State') === 'sync') {
-    console.log('Google Pub/Sub Verification Request');
-    return new Response('OK', { status: 200 });
-  }
+  
   // Validation token handling
   const validationToken = new URL(request.url).searchParams.get('validationToken');
   if (validationToken) {
@@ -44,91 +39,6 @@ export async function POST(request: Request) {
     if (!token) {
       console.error('No valid access token available');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (request.headers.has('X-Goog-Resource-ID')) {
-      console.log('Google Notification Received:', body);
-
-      const historyId = body.historyId;
-      if (!historyId) {
-        console.error('No historyId in Google notification');
-        return NextResponse.json({ error: 'Invalid Google notification' }, { status: 400 });
-      }
-
-      // Fetch recent changes from Gmail API
-      const auth = new google.auth.OAuth2();
-      auth.setCredentials({ access_token: token });
-
-      const gmail = google.gmail({ version: 'v1', auth });
-      const history = await gmail.users.history.list({
-        userId: 'me',
-        startHistoryId: historyId,
-      });
-
-
-      if (!history.data.history) {
-        console.log("No new messages found.");
-        return NextResponse.json({ success: true });
-      }
-      console.log('Google Email Changes:', history.data);
-      for (const record of history.data.history) {
-        if (!record.messages) continue;
-
-        for (const msg of record.messages) {
-          if (processedMessages.has(msg.id!)) {
-            console.log(`Skipping duplicate Google message: ${msg.id}`);
-            continue;
-          }
-          processedMessages.set(msg.id!, Date.now());
-          const message = await gmail.users.messages.get({
-            userId: "me",
-            id: msg.id!,
-            format: "full",
-          });
-
-          const headers = message.data.payload?.headers || [];
-          const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
-          const body = cleanEmailContent(message.data.snippet || "");
-
-          console.log("New Email Received:");
-          console.log(`Subject: ${subject}`);
-          console.log(`Body: ${body}`);
-
-          // Get user folders
-          const labels = await gmail.users.labels.list({ userId: "me" });
-
-          const folderDescriptions = await prisma.folderDescription.findMany();
-          const availableFolders = folderDescriptions.filter((desc) =>
-            labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
-          );
-
-          const suggestedFolder = await analyzeFolderMatch(
-            { subject, body },
-            availableFolders,
-            false
-          );
-
-          console.log(`Suggested folder: ${suggestedFolder}`);
-
-          if (suggestedFolder) {
-            const targetLabel = labels.data.labels?.find(
-              (l) => l.name?.toLowerCase() === suggestedFolder.toLowerCase()
-            );
-
-            if (targetLabel) {
-              await gmail.users.messages.modify({
-                userId: "me",
-                id: msg.id!,
-                requestBody: { addLabelIds: [targetLabel.id!] },
-              });
-              console.log(`Moved email to folder: ${suggestedFolder}`);
-            } else {
-              console.log(`Folder "${suggestedFolder}" not found.`);
-            }
-          }
-        }
-      }
-      return NextResponse.json({ success: true });
     }
 
     const client = Client.init({
@@ -173,7 +83,7 @@ export async function POST(request: Request) {
           .get();
 
         console.log('Parent folder:', parentFolder.displayName);
-
+        
         // Skip if not in inbox
         if (parentFolder.displayName.toLowerCase() !== 'inbox') {
           console.log(`Skipping - not in inbox (folder: ${parentFolder.displayName})`);
@@ -196,8 +106,8 @@ export async function POST(request: Request) {
         const folderDescriptions = await prisma.folderDescription.findMany();
 
         // Only include folders that exist in the user's mailbox
-        const availableFolders = folderDescriptions.filter(desc =>
-          userFolders.value.some((f: any) =>
+        const availableFolders = folderDescriptions.filter(desc => 
+          userFolders.value.some((f: any) => 
             f.displayName.toLowerCase() === desc.displayName.toLowerCase()
           )
         );
@@ -215,7 +125,7 @@ export async function POST(request: Request) {
           const folders = await client.api('/me/mailFolders')
             .select('id,displayName')
             .get();
-
+          
           const targetFolder = folders.value.find(
             (f: any) => f.displayName.toLowerCase() === suggestedFolder.toLowerCase()
           );

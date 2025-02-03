@@ -33,6 +33,7 @@ export const authOptions: NextAuthOptions = {
           scope: 'openid email profile https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.modify',
           access_type: 'offline',
           prompt: 'consent',
+          // redirect_uri: 'http://localhost:3000/api/auth/callback/google'
           redirect_uri: 'https://gmail-folder-manager.netlify.app/api/auth/callback/google'
         },
       },
