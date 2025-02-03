@@ -67,75 +67,75 @@ export async function POST(request: Request) {
         const gmail = google.gmail({ version: "v1", auth });
 
         // ✅ Fetch recent Gmail changes
-        const history = await gmail.users.history.list({
-            userId: "me",
-            startHistoryId: historyId,
-        });
-console.log(history)
-        if (!history.data.history) {
-            console.log("✅ No new emails found.");
-            return NextResponse.json({ success: true });
-        }
+//         const history = await gmail.users.history.list({
+//             userId: "me",
+//             startHistoryId: historyId,
+//         });
+// console.log(history)
+        // if (!history.data.history) {
+        //     console.log("✅ No new emails found.");
+        //     return NextResponse.json({ success: true });
+        // }
 
-        console.log("📨 Gmail History Changes:", history.data);
+        // console.log("📨 Gmail History Changes:", history.data);
 
 
         // for (const record of history.data.history) {
         //   if (!record.messages) continue;
 
         //   for (const msg of record.messages) {
-        //     // ✅ Deduplicate message processing
-        //     // if (processedMessages.has(msg.id!)) {
-        //     //   console.log(`Skipping duplicate Gmail message: ${msg.id}`);
-        //     //   continue;
-        //     // }
-        //     // processedMessages.set(msg.id!, Date.now());
+            // ✅ Deduplicate message processing
+            // if (processedMessages.has(msg.id!)) {
+            //   console.log(`Skipping duplicate Gmail message: ${msg.id}`);
+            //   continue;
+            // }
+            // processedMessages.set(msg.id!, Date.now());
 
-        //     // ✅ Fetch email details
-        //     const message = await gmail.users.messages.get({
-        //       userId: "me",
-        //       id: msg.id!,
-        //       format: "full",
-        //     });
+            // ✅ Fetch email details
+            const message = await gmail.users.messages.get({
+              userId: "me",
+              id: historyId!,
+              format: "full",
+            });
 
-        //     const headers = message.data.payload?.headers || [];
-        //     const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
-        //     const body = cleanEmailContent(message.data.snippet || "");
+            const headers = message.data.payload?.headers || [];
+            const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
+            const body2 = cleanEmailContent(message.data.snippet || "");
 
-        //     console.log("📧 New Email:");
-        //     console.log(`Subject: ${subject}`);
-        //     console.log(`Body: ${body}`);
+            console.log("📧 New Email:");
+            console.log(`Subject: ${subject}`);
+            console.log(`Body: ${body2}`);
 
-        //     // ✅ Fetch user folders (Gmail Labels)
-        //     const labels = await gmail.users.labels.list({ userId: "me" });
+            // ✅ Fetch user folders (Gmail Labels)
+            // const labels = await gmail.users.labels.list({ userId: "me" });
 
-        //     // ✅ Match folders for AI-based email categorization
-        //     const folderDescriptions = await prisma.folderDescription.findMany();
-        //     const availableFolders = folderDescriptions.filter((desc) =>
-        //       labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
-        //     );
+            // ✅ Match folders for AI-based email categorization
+            // const folderDescriptions = await prisma.folderDescription.findMany();
+            // const availableFolders = folderDescriptions.filter((desc) =>
+            //   labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
+            // );
 
-        //     const suggestedFolder = await analyzeFolderMatch({ subject, body }, availableFolders, false);
+            // const suggestedFolder = await analyzeFolderMatch({ subject, body }, availableFolders, false);
 
-        //     console.log(`📂 Suggested Folder: ${suggestedFolder}`);
+            // console.log(`📂 Suggested Folder: ${suggestedFolder}`);
 
-        //     // ✅ Move Email to Suggested Folder
-        //     if (suggestedFolder) {
-        //       const targetLabel = labels.data.labels?.find(
-        //         (l) => l.name?.toLowerCase() === suggestedFolder.toLowerCase()
-        //       );
+            // ✅ Move Email to Suggested Folder
+            // if (suggestedFolder) {
+            //   const targetLabel = labels.data.labels?.find(
+            //     (l) => l.name?.toLowerCase() === suggestedFolder.toLowerCase()
+            //   );
 
-        //       if (targetLabel) {
-        //         await gmail.users.messages.modify({
-        //           userId: "me",
-        //           id: msg.id!,
-        //           requestBody: { addLabelIds: [targetLabel.id!] },
-        //         });
-        //         console.log(`✅ Email moved to folder: ${suggestedFolder}`);
-        //       } else {
-        //         console.log(`⚠️ Folder "${suggestedFolder}" not found.`);
-        //       }
-        //     }
+            //   if (targetLabel) {
+            //     await gmail.users.messages.modify({
+            //       userId: "me",
+            //       id: historyId!,
+            //       requestBody: { addLabelIds: [targetLabel.id!] },
+            //     });
+            //     console.log(`✅ Email moved to folder: ${suggestedFolder}`);
+            //   } else {
+            //     console.log(`⚠️ Folder "${suggestedFolder}" not found.`);
+            //   }
+            // }
         //   }
         // }
 
