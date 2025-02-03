@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         // }
 
         const rawBody = await request.text(); // Read as raw text
-        console.log("🔍 Raw Body:", rawBody);
+        // console.log("🔍 Raw Body:", rawBody);
 
 
         const body = JSON.parse(rawBody);
@@ -50,42 +50,40 @@ export async function POST(request: Request) {
         // Decode the Base64-encoded message data
         const decodedMessage = Buffer.from(body.message.data, "base64").toString("utf-8");
 
-
-
         let parsedData;
-        try {
+            try {
             parsedData = JSON.parse(decodedMessage);
-            console.log("✅ Decoded Pub/Sub Message:", parsedData);
+            console.log("✅ Parsed Pub/Sub Message:", parsedData.historyId);
 
-            const historyId = parsedData.historyId;
-            if (!historyId) {
-                console.error("No historyId in Google notification");
-                return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
-            }
-            // ✅ Get OAuth Token
-            const accessToken = await getStoredToken();
-            if (!accessToken) {
-                console.error("No valid access token available");
-                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-            }
+            // const historyId = parsedData.historyId;
+            // if (!historyId) {
+            //     console.error("No historyId in Google notification");
+            //     return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
+            // }
+            // // ✅ Get OAuth Token
+            // const accessToken = await getStoredToken();
+            // if (!accessToken) {
+            //     console.error("No valid access token available");
+            //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            // }
 
-            // ✅ Authenticate Gmail API
-            const auth = new google.auth.OAuth2();
-            auth.setCredentials({ access_token: accessToken });
-            const gmail = google.gmail({ version: "v1", auth });
+            // // ✅ Authenticate Gmail API
+            // const auth = new google.auth.OAuth2();
+            // auth.setCredentials({ access_token: accessToken });
+            // const gmail = google.gmail({ version: "v1", auth });
 
-            // ✅ Fetch recent Gmail changes
-            const history = await gmail.users.history.list({
-                userId: "me",
-                startHistoryId: historyId,
-            });
+            // // ✅ Fetch recent Gmail changes
+            // const history = await gmail.users.history.list({
+            //     userId: "me",
+            //     startHistoryId: historyId,
+            // });
 
-            if (!history.data.history) {
-                console.log("✅ No new emails found.");
-                return NextResponse.json({ success: true });
-            }
+            // if (!history.data.history) {
+            //     console.log("✅ No new emails found.");
+            //     return NextResponse.json({ success: true });
+            // }
 
-            console.log("📨 Gmail History Changes:", history.data);
+            // console.log("📨 Gmail History Changes:", history.data);
 
 
         } catch (e) {
