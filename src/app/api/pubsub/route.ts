@@ -38,18 +38,18 @@ export async function POST(request: Request) {
     // }
 
     const rawBody = await request.text(); // Read as raw text
-    // console.log("🔍 Raw Body:", rawBody);
+    console.log("🔍 Raw Body:", rawBody);
 
-    const body = JSON.parse(rawBody);
+    // const body = JSON.parse(rawBody);
     
-    // ✅ Parse Pub/Sub message
+    // // ✅ Parse Pub/Sub message
 
-    if (!body.message || !body.message.data) {
-      return NextResponse.json({ error: "Invalid Pub/Sub message" }, { status: 400 });
-    }
+    // if (!body.message || !body.message.data) {
+    //   return NextResponse.json({ error: "Invalid Pub/Sub message" }, { status: 400 });
+    // }
 
-    const messageData = JSON.parse(Buffer.from(body.message.data, "base64").toString("utf-8"));
-    console.log("📩 Received Gmail Notification:", messageData);
+    // const messageData = JSON.parse(Buffer.from(body.message.data, "base64").toString("utf-8"));
+    // console.log("📩 Received Gmail Notification:", messageData);
 
     // const historyId = messageData.historyId;
     // if (!historyId) {
