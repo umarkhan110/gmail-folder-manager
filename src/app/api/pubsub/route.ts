@@ -55,28 +55,28 @@ export async function POST(request: Request) {
             parsedData = JSON.parse(decodedMessage);
             console.log("✅ Parsed Pub/Sub Message:", parsedData.historyId);
 
-            // const historyId = parsedData.historyId;
-            // if (!historyId) {
-            //     console.error("No historyId in Google notification");
-            //     return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
-            // }
-            // // ✅ Get OAuth Token
-            // const accessToken = await getStoredToken();
-            // if (!accessToken) {
-            //     console.error("No valid access token available");
-            //     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-            // }
+            const historyId = parsedData.historyId;
+            if (!historyId) {
+                console.error("No historyId in Google notification");
+                return NextResponse.json({ error: "Invalid Google notification" }, { status: 400 });
+            }
+            // ✅ Get OAuth Token
+            const accessToken = await getStoredToken();
+            if (!accessToken) {
+                console.error("No valid access token available");
+                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            }
 
-            // // ✅ Authenticate Gmail API
-            // const auth = new google.auth.OAuth2();
-            // auth.setCredentials({ access_token: accessToken });
-            // const gmail = google.gmail({ version: "v1", auth });
+            // ✅ Authenticate Gmail API
+            const auth = new google.auth.OAuth2();
+            auth.setCredentials({ access_token: accessToken });
+            const gmail = google.gmail({ version: "v1", auth });
 
-            // // ✅ Fetch recent Gmail changes
-            // const history = await gmail.users.history.list({
-            //     userId: "me",
-            //     startHistoryId: historyId,
-            // });
+            // ✅ Fetch recent Gmail changes
+            const history = await gmail.users.history.list({
+                userId: "me",
+                startHistoryId: historyId,
+            });
 
             // if (!history.data.history) {
             //     console.log("✅ No new emails found.");
