@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
 
         } catch (e) {
-            console.error("❌ Decoded message is not valid JSON:", decodedMessage);
+            console.error("❌ Decoded message is not valid JSON:", e);
         }
 
         // const body = JSON.parse(rawBody);
