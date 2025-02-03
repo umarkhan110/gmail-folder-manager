@@ -97,7 +97,7 @@ export async function POST(request: Request) {
               id: historyId!,
               format: "full",
             });
-
+console.log(message)
             const headers = message.data.payload?.headers || [];
             const subject = headers.find((h) => h.name === "Subject")?.value || "No Subject";
             const body2 = cleanEmailContent(message.data.snippet || "");
