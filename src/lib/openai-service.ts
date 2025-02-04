@@ -39,7 +39,7 @@ export async function analyzeFolderMatch(
   const availableFolders = showSystemFolders 
     ? folders 
     : folders.filter((folder:any) => folder.type !== 'system');
-console.log("availableFolders", availableFolders)
+// console.log("availableFolders", availableFolders)
   // If no folders available, return null
   if (availableFolders.length === 0) {
     return null;

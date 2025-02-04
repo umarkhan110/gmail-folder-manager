@@ -79,13 +79,15 @@ export async function POST(request: Request) {
 
                 // ✅ Fetch user folders (Gmail Labels)
                 const labels = await gmail.users.labels.list({ userId: "me" });
+                console.log("labels", labels.data.labels)
 
                 // ✅ Match folders for AI-based email categorization
-                // console.log(labels)
                 const folderDescriptions = await prisma.folderDescription.findMany();
+                console.log("folderDescriptions", folderDescriptions)
                 const availableFolders = folderDescriptions.filter((desc) =>
                     labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
                 );
+                console.log("availableFolders", availableFolders)
                 const suggestedFolder = await analyzeFolderMatch({ subject, body }, availableFolders, false);
 
                 console.log(`📂 Suggested Folder: ${suggestedFolder}`);
