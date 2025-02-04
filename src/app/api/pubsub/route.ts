@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         // ✅ Fetch Gmail History Changes
         const history = await gmail.users.history.list({
             userId: "me",
-            startHistoryId: String(historyId - 10),
+            startHistoryId: String(historyId - 50),
         });
 
         // console.log("📨 Gmail History Changes:", history.data);
