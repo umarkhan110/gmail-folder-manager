@@ -39,7 +39,7 @@ export async function analyzeFolderMatch(
   const availableFolders = showSystemFolders 
     ? folders 
     : folders.filter((folder:any) => folder.type !== 'system');
-
+console.log("availableFolders", availableFolders)
   // If no folders available, return null
   if (availableFolders.length === 0) {
     return null;
@@ -59,7 +59,7 @@ Subject: ${email.subject}
 Body: ${cleanedBody}
 
 Best matching folder:`;
-console.log(prompt)
+// console.log(prompt)
   const completion = await openai.chat.completions.create({
     messages: [
       {
