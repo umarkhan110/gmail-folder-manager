@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { LogOut, RefreshCw } from 'lucide-react';
 
 export function Nav() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 // console.log(session)
   const handleForceNewLogin = async () => {
     // Clear local session
@@ -26,7 +26,7 @@ export function Nav() {
           <div className="flex items-center space-x-4">
             <Link href="#features" className="text-sm hover:text-primary">Features</Link>
             <Link href="#pricing" className="text-sm hover:text-primary">Pricing</Link>
-            {!session ? (
+            {status !== "authenticated" ? (
               <div>
                 <Button
                   variant="outline"

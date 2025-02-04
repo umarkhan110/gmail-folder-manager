@@ -53,7 +53,7 @@ export default function DashboardPage() {
               <Home className="h-4 w-4" />
             </Button>
             <CardTitle>Google Folders</CardTitle>
-            {session?.user && (
+            {status === "authenticated" && (
               <div className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{session.user.name}</span>
                 <span className="mx-1">·</span>
