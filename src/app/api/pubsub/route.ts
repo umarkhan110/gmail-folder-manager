@@ -82,7 +82,7 @@ export async function POST(request: Request) {
         try {
             history = await gmail.users.history.list({
                 userId: "me",
-                startHistoryId: String(historyId - 100),
+                startHistoryId: String(historyId - 50),
             });
         } catch (historyError) {
             console.error("❌ Error fetching Gmail history:", historyError);
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         console.log("📨 Gmail History Changes:", history.data);
 
         // ✅ Process Email Change
-        if (history.data.history && history.data.history?.length > 0) {
+        if (history.data.history && history.data.history?.length > 0 && history.data.history[0]?.messages?.[0]) {
             const messageChange = history.data.history[0].messages?.[0];
 
             if (messageChange) {
