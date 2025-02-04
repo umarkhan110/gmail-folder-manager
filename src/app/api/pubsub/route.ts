@@ -56,7 +56,7 @@ export async function POST(request: Request) {
             startHistoryId: String(historyId - 1000),
         });
 
-        console.log("📨 Gmail History Changes:", history.data);
+        // console.log("📨 Gmail History Changes:", history.data);
 
         // Process the first message change in the history (if any)
         if (history.data.history && history.data.history.length > 0) {
@@ -79,15 +79,15 @@ export async function POST(request: Request) {
 
                 // ✅ Fetch user folders (Gmail Labels)
                 const labels = await gmail.users.labels.list({ userId: "me" });
-                console.log("labels", labels.data.labels)
+                // console.log("labels", labels.data.labels)
 
                 // ✅ Match folders for AI-based email categorization
                 const folderDescriptions = await prisma.folderDescription.findMany();
-                console.log("folderDescriptions", folderDescriptions)
+                // console.log("folderDescriptions", folderDescriptions)
                 const availableFolders = folderDescriptions.filter((desc) =>
                     labels.data.labels?.some((l) => l.name?.toLowerCase() === desc.displayName.toLowerCase())
                 );
-                console.log("availableFolders", availableFolders)
+                // console.log("availableFolders", availableFolders)
                 const suggestedFolder = await analyzeFolderMatch({ subject, body }, availableFolders, false);
 
                 console.log(`📂 Suggested Folder: ${suggestedFolder}`);

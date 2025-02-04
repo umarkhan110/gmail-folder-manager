@@ -59,7 +59,7 @@ Subject: ${email.subject}
 Body: ${cleanedBody}
 
 Best matching folder:`;
-// console.log(prompt)
+console.log("prompt", prompt)
   const completion = await openai.chat.completions.create({
     messages: [
       {
