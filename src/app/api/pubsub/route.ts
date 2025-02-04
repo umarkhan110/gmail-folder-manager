@@ -82,7 +82,7 @@ export async function POST(request: Request) {
         try {
             history = await gmail.users.history.list({
                 userId: "me",
-                startHistoryId: String(historyId),
+                startHistoryId: String(historyId - 1000),
             });
         } catch (historyError) {
             console.error("❌ Error fetching Gmail history:", historyError);
