@@ -6,13 +6,22 @@ interface TokenInfo {
 }
 
 // Store token for a specific user
-export async function storeToken(userId: string, tokenInfo: TokenInfo) {
+export async function storeToken(userId: string, tokenInfo: TokenInfo & { refreshToken?: string }) {
   try {
     // Store in global token for background tasks
     await prisma.token.upsert({
-      where: { id: 'global' },
-      update: { value: tokenInfo.accessToken },
-      create: { id: 'global', value: tokenInfo.accessToken }
+      where: { userId },
+      update: {
+        accessToken: tokenInfo.accessToken,
+        refreshToken: tokenInfo.refreshToken,
+        expiresAt: tokenInfo.expiresAt,
+      },
+      create: {
+        userId,
+        accessToken: tokenInfo.accessToken,
+        refreshToken: tokenInfo.refreshToken,
+        expiresAt: tokenInfo.expiresAt,
+      },
     });
     console.log('Stored new token for user:', userId);
   } catch (error) {
