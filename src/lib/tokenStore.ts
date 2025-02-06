@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { refreshAccessToken } from './refreshAccessToken';
 
 interface TokenInfo {
   accessToken: string;
@@ -70,7 +71,25 @@ export async function getStoredToken(userId: string): Promise<string | null> {
     });
     if (!token) return null;
 
-    // if (new Date() > token.expiresAt) return null;
+    // Check if the token is expired
+    if (new Date() > token.expiresAt) {
+      console.log("🔄 Access token expired, refreshing...");
+
+      const newToken = await refreshAccessToken(token.refreshToken);
+      if (!newToken) return null;
+
+      // Update the database with the new token
+      await prisma.token.update({
+        where: { userId },
+        data: {
+          accessToken: newToken.accessToken,
+          expiresAt: newToken.expiresAt,
+          refreshToken: newToken.refreshToken || token.refreshToken,
+        },
+      });
+
+      return newToken.accessToken;
+    }
     return token.accessToken;
   } catch (error) {
     console.error('Error getting stored token:', error);

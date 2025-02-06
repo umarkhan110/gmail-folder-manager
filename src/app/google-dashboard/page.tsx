@@ -26,7 +26,7 @@ export default function DashboardPage() {
     await signOut({ redirect: false });
 
     // Clear Microsoft login state
-    window.location.href = `https://login.googleonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
+    // window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
   };
 
   if (status === "loading") {

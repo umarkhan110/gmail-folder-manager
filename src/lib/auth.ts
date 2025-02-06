@@ -40,10 +40,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, account }) {
-      // console.log('JWT Callback - Account:', {
-      //   accessToken: !!account?.access_token,
-      //   scopes: account?.scope,
-      // });
 
       if (account) {
         token.accessToken = account.access_token;
@@ -58,14 +54,6 @@ export const authOptions: NextAuthOptions = {
             expiresAt: new Date(account.expires_at! * 1000),
           });
         }
-
-        // if (account.refresh_token) {
-        //   await prisma.token.upsert({
-        //     where: { id: `refresh_token_${token.provider}` },
-        //     update: { value: account.refresh_token },
-        //     create: { id: `refresh_token_${token.provider}`, value: account.refresh_token },
-        //   });
-        // }
       }
 
       if (token.expiresAt && Date.now() < token.expiresAt) {
