@@ -30,20 +30,20 @@ export async function storeToken(userId: string, tokenInfo: TokenInfo & { refres
   }
 }
 
-// Store global token (for background tasks)
-export async function storeGlobalToken(token: string) {
-  try {
-    await prisma.token.upsert({
-      where: { id: 'global' },
-      update: { value: token },
-      create: { id: 'global', value: token }
-    });
-    console.log('Stored new global token');
-  } catch (error) {
-    console.error('Error storing global token:', error);
-    throw error;
-  }
-}
+// // Store global token (for background tasks)
+// export async function storeGlobalToken(token: string) {
+//   try {
+//     await prisma.token.upsert({
+//       where: { id: 'global' },
+//       update: { value: token },
+//       create: { id: 'global', value: token }
+//     });
+//     console.log('Stored new global token');
+//   } catch (error) {
+//     console.error('Error storing global token:', error);
+//     throw error;
+//   }
+// }
 
 // Get token for a specific user - now uses global token
 export async function getValidToken(userId: string): Promise<string | null> {

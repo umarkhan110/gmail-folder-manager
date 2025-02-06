@@ -35,121 +35,122 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const token = await getStoredToken();
-    if (!token) {
-      console.error('No valid access token available');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    console.log(body)
+    // const token = await getStoredToken();
+    // if (!token) {
+    //   console.error('No valid access token available');
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
-    const client = Client.init({
-      authProvider: (done) => {
-        done(null, token);
-      },
-    });
+    // const client = Client.init({
+    //   authProvider: (done) => {
+    //     done(null, token);
+    //   },
+    // });
 
-    // Check for duplicate notifications
-    for (const notification of body.value) {
-      const messageId = notification.resourceData?.id;
-      if (!messageId) continue;
+    // // Check for duplicate notifications
+    // for (const notification of body.value) {
+    //   const messageId = notification.resourceData?.id;
+    //   if (!messageId) continue;
 
-      const lastProcessed = processedMessages.get(messageId);
-      const now = Date.now();
+    //   const lastProcessed = processedMessages.get(messageId);
+    //   const now = Date.now();
 
-      if (lastProcessed && (now - lastProcessed) < DUPLICATE_WINDOW_MS) {
-        console.log(`Skipping duplicate message: ${messageId}`);
-        continue;
-      }
+    //   if (lastProcessed && (now - lastProcessed) < DUPLICATE_WINDOW_MS) {
+    //     console.log(`Skipping duplicate message: ${messageId}`);
+    //     continue;
+    //   }
 
-      processedMessages.set(messageId, now);
+    //   processedMessages.set(messageId, now);
 
-      // Clean up old entries periodically
-      if (processedMessages.size > 1000) {  // Prevent memory leaks
-        for (const [id, timestamp] of processedMessages.entries()) {
-          if (now - timestamp > DUPLICATE_WINDOW_MS) {
-            processedMessages.delete(id);
-          }
-        }
-      }
+    //   // Clean up old entries periodically
+    //   if (processedMessages.size > 1000) {  // Prevent memory leaks
+    //     for (const [id, timestamp] of processedMessages.entries()) {
+    //       if (now - timestamp > DUPLICATE_WINDOW_MS) {
+    //         processedMessages.delete(id);
+    //       }
+    //     }
+    //   }
 
-      try {
-        // Get the message details
-        const message = await client.api(`/me/messages/${notification.resourceData.id}`)
-          .select('subject,body,parentFolderId')
-          .get();
+    //   try {
+    //     // Get the message details
+    //     const message = await client.api(`/me/messages/${notification.resourceData.id}`)
+    //       .select('subject,body,parentFolderId')
+    //       .get();
 
-        // Get the parent folder details
-        const parentFolder = await client.api(`/me/mailFolders/${message.parentFolderId}`)
-          .select('displayName')
-          .get();
+    //     // Get the parent folder details
+    //     const parentFolder = await client.api(`/me/mailFolders/${message.parentFolderId}`)
+    //       .select('displayName')
+    //       .get();
 
-        console.log('Parent folder:', parentFolder.displayName);
+    //     console.log('Parent folder:', parentFolder.displayName);
         
-        // Skip if not in inbox
-        if (parentFolder.displayName.toLowerCase() !== 'inbox') {
-          console.log(`Skipping - not in inbox (folder: ${parentFolder.displayName})`);
-          continue;
-        }
+    //     // Skip if not in inbox
+    //     if (parentFolder.displayName.toLowerCase() !== 'inbox') {
+    //       console.log(`Skipping - not in inbox (folder: ${parentFolder.displayName})`);
+    //       continue;
+    //     }
 
-        const emailContent = {
-          subject: message.subject,
-          body: cleanEmailContent(message.body.content)
-        };
+    //     const emailContent = {
+    //       subject: message.subject,
+    //       body: cleanEmailContent(message.body.content)
+    //     };
 
-        console.log('\n=== New Email Received ===');
-        console.log(`Subject: ${emailContent.subject}`);
-        console.log(`Body: ${emailContent.body}`);
+    //     console.log('\n=== New Email Received ===');
+    //     console.log(`Subject: ${emailContent.subject}`);
+    //     console.log(`Body: ${emailContent.body}`);
 
-        const userFolders = await client.api('/me/mailFolders')
-          .select('id,displayName')
-          .get();
+    //     const userFolders = await client.api('/me/mailFolders')
+    //       .select('id,displayName')
+    //       .get();
 
-        const folderDescriptions = await prisma.folderDescription.findMany();
+    //     const folderDescriptions = await prisma.folderDescription.findMany();
 
-        // Only include folders that exist in the user's mailbox
-        const availableFolders = folderDescriptions.filter(desc => 
-          userFolders.value.some((f: any) => 
-            f.displayName.toLowerCase() === desc.displayName.toLowerCase()
-          )
-        );
+    //     // Only include folders that exist in the user's mailbox
+    //     const availableFolders = folderDescriptions.filter(desc => 
+    //       userFolders.value.some((f: any) => 
+    //         f.displayName.toLowerCase() === desc.displayName.toLowerCase()
+    //       )
+    //     );
 
-        const suggestedFolder = await analyzeFolderMatch(
-          emailContent,
-          availableFolders,
-          false
-        );
+    //     const suggestedFolder = await analyzeFolderMatch(
+    //       emailContent,
+    //       availableFolders,
+    //       false
+    //     );
 
-        console.log(`Suggested folder: ${suggestedFolder}`);
+    //     console.log(`Suggested folder: ${suggestedFolder}`);
 
-        if (suggestedFolder) {
-          // Get all folders and find the target folder
-          const folders = await client.api('/me/mailFolders')
-            .select('id,displayName')
-            .get();
+    //     if (suggestedFolder) {
+    //       // Get all folders and find the target folder
+    //       const folders = await client.api('/me/mailFolders')
+    //         .select('id,displayName')
+    //         .get();
           
-          const targetFolder = folders.value.find(
-            (f: any) => f.displayName.toLowerCase() === suggestedFolder.toLowerCase()
-          );
+    //       const targetFolder = folders.value.find(
+    //         (f: any) => f.displayName.toLowerCase() === suggestedFolder.toLowerCase()
+    //       );
 
-          if (targetFolder) {
-            try {
-              await client.api(`/me/messages/${notification.resourceData.id}/move`)
-                .post({
-                  destinationId: targetFolder.id
-                });
-              console.log(`Moved email to folder: ${suggestedFolder}`);
-            } catch (error) {
-              console.error('Error moving email:', error);
-            }
-          } else {
-            console.log(`Folder "${suggestedFolder}" not found in user's mailbox`);
-          }
-        }
+    //       if (targetFolder) {
+    //         try {
+    //           await client.api(`/me/messages/${notification.resourceData.id}/move`)
+    //             .post({
+    //               destinationId: targetFolder.id
+    //             });
+    //           console.log(`Moved email to folder: ${suggestedFolder}`);
+    //         } catch (error) {
+    //           console.error('Error moving email:', error);
+    //         }
+    //       } else {
+    //         console.log(`Folder "${suggestedFolder}" not found in user's mailbox`);
+    //       }
+    //     }
 
-        console.log('========================\n');
-      } catch (error) {
-        console.error('Error processing email:', error);
-      }
-    }
+    //     console.log('========================\n');
+    //   } catch (error) {
+    //     console.error('Error processing email:', error);
+    //   }
+    // }
 
     return NextResponse.json({ success: true });
   } catch (error) {

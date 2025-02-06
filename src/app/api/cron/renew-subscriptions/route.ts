@@ -2,9 +2,15 @@ import { NextResponse } from 'next/server';
 import { getStoredToken } from '@/lib/tokenStore';
 import { checkAndRenewSubscriptions } from '@/lib/subscriptionManager';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.accessToken || !session.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     // Verify the request is from Vercel's cron
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET_KEY}`) {
@@ -15,9 +21,9 @@ export async function GET(request: Request) {
 
     // Get current state of subscriptions
     const beforeSubs = await prisma.userSubscription.findMany({
-      where: { 
+      where: {
         webhookId: { not: null },
-        isSubscribed: true 
+        isSubscribed: true
       }
     });
 
@@ -31,7 +37,7 @@ export async function GET(request: Request) {
       });
     });
 
-    const token = await getStoredToken();
+    const token = await getStoredToken(session.user?.email);
     if (!token) {
       return NextResponse.json({ error: 'No valid access token available' }, { status: 401 });
     }
@@ -41,9 +47,9 @@ export async function GET(request: Request) {
 
     // Get state after renewal
     const afterSubs = await prisma.userSubscription.findMany({
-      where: { 
+      where: {
         webhookId: { not: null },
-        isSubscribed: true 
+        isSubscribed: true
       }
     });
 
@@ -63,7 +69,7 @@ export async function GET(request: Request) {
 
     console.log('=== Automated Renewal Complete ===\n');
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       details: {
         processed: afterSubs.length,
