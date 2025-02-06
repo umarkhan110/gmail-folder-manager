@@ -49,9 +49,13 @@ export async function storeGlobalToken(token: string) {
 export async function getValidToken(userId: string): Promise<string | null> {
   try {
     const token = await prisma.token.findUnique({
-      where: { id: 'global' }
+      where: { userId }
     });
-    return token?.value || null;
+    if (!token) return null;
+
+    // Check if token is expired
+    if (new Date() > token.expiresAt) return null;
+    return token.accessToken;
   } catch (error) {
     console.error('Error getting valid token:', error);
     return null;
@@ -59,12 +63,15 @@ export async function getValidToken(userId: string): Promise<string | null> {
 }
 
 // Get global token (for background tasks)
-export async function getStoredToken(): Promise<string | null> {
+export async function getStoredToken(userId: string): Promise<string | null> {
   try {
     const token = await prisma.token.findUnique({
-      where: { id: 'global' }
+      where: { userId }
     });
-    return token?.value || null;
+    if (!token) return null;
+
+    // if (new Date() > token.expiresAt) return null;
+    return token.accessToken;
   } catch (error) {
     console.error('Error getting stored token:', error);
     return null;
