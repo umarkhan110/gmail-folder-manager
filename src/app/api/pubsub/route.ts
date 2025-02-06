@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     // }
 
     // ✅ Fetch OAuth Token
-    const accessToken = await getStoredToken();
+    const accessToken = await getStoredToken(decodedMessage.emailAddress);
     console.log("🔑 Access Token:", accessToken);
     if (!accessToken) {
         console.error("❌ No valid access token available");

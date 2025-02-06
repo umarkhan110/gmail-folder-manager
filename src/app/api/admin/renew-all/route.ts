@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     // Force renewal regardless of expiration
     if (beforeSub?.webhookId) {
-      const token = await getStoredToken();
+          const token = await getStoredToken(session?.user?.email);
       if (!token) {
         return NextResponse.json({ error: 'No valid access token available' }, { status: 401 });
       }
