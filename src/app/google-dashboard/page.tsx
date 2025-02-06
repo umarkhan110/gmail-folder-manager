@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -23,7 +24,7 @@ export default function DashboardPage() {
   const handleForceNewLogin = async () => {
     // Clear local session
     await signOut({ redirect: false });
-    
+
     // Clear Microsoft login state
     window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(window.location.origin)}`;
   };
@@ -45,8 +46,8 @@ export default function DashboardPage() {
       <Card className="bg-card border-border/10 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => window.location.href = '/'}
             >
@@ -62,16 +63,16 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               size="sm"
               onClick={() => signOut()}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={handleForceNewLogin}
             >
@@ -110,7 +111,7 @@ function FolderList() {
     'sent items',
   ].map(name => name.toLowerCase())
 
-  const displayedFolders = folders.filter(folder => 
+  const displayedFolders = folders.filter(folder =>
     showSystemFolders ? true : folder.type !== 'system'
   )
 
@@ -152,7 +153,7 @@ function FolderList() {
       const data = await res.json()
       // console.log('Raw folders from API:', data) // Debug log
       setFolders(data)
-      
+
       // Debug log after filtering
       // console.log('Displayed folders after filter:', displayedFolders)
     } catch (error) {
@@ -179,7 +180,7 @@ function FolderList() {
 
   const createFolder = async () => {
     if (!newFolderName.trim()) return
-    
+
     setIsCreating(true)
     try {
       const res = await fetch('/api/google-folders', {
@@ -194,7 +195,7 @@ function FolderList() {
       })
 
       if (!res.ok) throw new Error('Failed to create folder')
-      
+
       // Refresh folders list
       const updatedRes = await fetch('/api/google-folders')
       const updatedFolders = await updatedRes.json()
@@ -222,23 +223,23 @@ function FolderList() {
       const res = await fetch('/api/google-folders', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id: folderId,
-          description: descriptionInputs[folderId] ?? '' 
+        body: JSON.stringify({
+          labelId: folderId,
+          description: descriptionInputs[folderId] ?? ''
         }),
       })
-      
+
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'Failed to update description')
       }
-      
-      setFolders(prev => prev.map(folder => 
-        folder.id === folderId 
+
+      setFolders(prev => prev.map(folder =>
+        folder.id === folderId
           ? { ...folder, description: descriptionInputs[folderId] ?? '' }
           : folder
       ))
-      
+
       toast.success('Description updated')
     } catch (error) {
       console.error('Error updating description:', error)
@@ -257,11 +258,11 @@ function FolderList() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: folderId }),
+        body: JSON.stringify({ labelId: folderId }),
       })
-      
+
       const data = await res.json()
-      
+
       if (!res.ok) {
         if (res.status === 401) {
           toast.error('Session expired. Please sign in again.')
@@ -275,7 +276,7 @@ function FolderList() {
         toast.error(data.error || 'Failed to delete folder')
         return
       }
-      
+
       setFolders(folders.filter(folder => folder.id !== folderId))
       toast.success('Folder deleted successfully')
     } catch (err) {
@@ -287,13 +288,13 @@ function FolderList() {
   if (error) {
     return (
       <div className="p-4 text-destructive bg-destructive/10 rounded-md">
-        {error.includes('Failed to fetch folders') 
+        {error.includes('Failed to fetch folders')
           ? 'Please sign out and sign back in to refresh your session'
           : error}
       </div>
     )
   }
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -320,7 +321,7 @@ function FolderList() {
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Input
               placeholder="New folder name"
@@ -335,7 +336,7 @@ function FolderList() {
               className="border-2 border-border"
             />
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={createFolder}
                 disabled={isCreating || !newFolderName.trim()}
                 className="border-2 border-primary hover:bg-primary/90"

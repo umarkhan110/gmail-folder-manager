@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import OpenAI from 'openai';
 import { cleanEmailContent } from './emailParser';
 
@@ -6,6 +8,7 @@ const openai = new OpenAI({
 });
 
 interface EmailContent {
+  // from: string;
   subject: string;
   body: string;
 }
@@ -28,18 +31,18 @@ const SYSTEM_FOLDERS = [
 ].map(name => name.toLowerCase());
 
 export async function analyzeFolderMatch(
-  email: EmailContent, 
-  folders: Folder[], 
+  email: EmailContent,
+  folders: Folder[],
   showSystemFolders: boolean
 ) {
   // Clean the email body before processing
   const cleanedBody = cleanEmailContent(email.body);
-  
+
   // Filter folders based on the showSystemFolders setting
-  const availableFolders = showSystemFolders 
-    ? folders 
-    : folders.filter((folder:any) => folder.type !== 'system');
-// console.log("availableFolders", availableFolders)
+  const availableFolders = showSystemFolders
+    ? folders
+    : folders.filter((folder: any) => folder.type !== 'system');
+  // console.log("availableFolders", availableFolders)
   // If no folders available, return null
   if (availableFolders.length === 0) {
     return null;
@@ -59,7 +62,7 @@ Subject: ${email.subject}
 Body: ${cleanedBody}
 
 Best matching folder:`;
-console.log("prompt", prompt)
+  console.log("prompt", prompt)
   const completion = await openai.chat.completions.create({
     messages: [
       {

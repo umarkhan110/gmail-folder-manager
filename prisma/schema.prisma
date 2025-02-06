@@ -17,6 +17,7 @@ model FolderDescription {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
+  labelId     String?
 }
 
 model UserSubscription {
@@ -25,7 +26,8 @@ model UserSubscription {
   isSubscribed      Boolean   @default(false)
   licenseKey        String?   
   licenseExpiresAt  DateTime?
-  provider           String?
+  provider          String?
+  googleHistoryId   String?
   // Microsoft Graph webhook subscription fields
   webhookId         String?   @unique  
   webhookExpiresAt  DateTime? 

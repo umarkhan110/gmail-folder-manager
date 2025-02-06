@@ -33,7 +33,6 @@ export const authOptions: NextAuthOptions = {
           scope: 'openid email profile https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/gmail.modify',
           access_type: 'offline',
           prompt: 'consent',
-          // redirect_uri: 'http://localhost:3000/api/auth/callback/google'
           redirect_uri: 'https://gmail-folder-manager.netlify.app/api/auth/callback/google'
         },
       },
@@ -74,7 +73,6 @@ export const authOptions: NextAuthOptions = {
 
       try {
         let response;
-        let tokens;
 
         if (token.provider === 'microsoft') {
           response = await fetch(
@@ -104,7 +102,7 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        tokens = await response?.json();
+        const tokens = await response?.json();
         if (!response?.ok) throw tokens;
 
         if (token.email) {
@@ -142,12 +140,38 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      // Create or update the user subscription first.
       await prisma.userSubscription.upsert({
         where: { userId: user.email! },
         create: { userId: user.email! },
         update: {},
       });
+
+      // Check the current subscription details.
+      const existingUser = await prisma.userSubscription.findUnique({
+        where: { userId: user.email! },
+      });
+
+      console.log('Sign In Event:', existingUser);
+      if ((!existingUser || (existingUser && !existingUser.googleHistoryId)) && account && account.provider === 'google') {
+        try {
+          const sessionData = {
+            accessToken: account.access_token,
+            email: user.email,
+            provider: account.provider,
+          };
+          const res = await fetch(`${process.env.NEXTAUTH_URL}/api/subscriptions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sessionData),
+          });
+          console.log('Watch() response Response:', res);
+          if (!res.ok) throw new Error('Failed to create subscription');
+        } catch (err) {
+          console.log(err);
+        }
+      }
     },
   },
   pages: {
@@ -158,5 +182,6 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60,
     updateAge: 24 * 60 * 60,
   },
+  secret: process.env.NEXTAUTH_SECRET,
   debug: true,
 };

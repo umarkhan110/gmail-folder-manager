@@ -34,10 +34,16 @@ export async function GET() {
 }
 
 // Create subscription
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.accessToken || !session.user?.email) {
+    const session = await request.json();
+    console.log('Session:', session);
+
+    //const session = await getServerSession(authOptions);
+
+
+    if (!session.accessToken || !session.email) {
+      console.log('Unauthorized');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -45,7 +51,7 @@ export async function POST() {
     await checkAndRenewSubscriptions(session.accessToken);
 
     // Store the token with proper expiration
-    await storeToken(session.user.email, {
+    await storeToken(session.email, {
       accessToken: session.accessToken,
       expiresAt: new Date(Date.now() + 3600 * 1000) // 1 hour
     });
@@ -53,30 +59,36 @@ export async function POST() {
     let subscription = null;
 
     if (session.provider === 'microsoft') {
-      subscription = await createMailSubscription(session.accessToken, session.user.email);
+      subscription = await createMailSubscription(session.accessToken, session.email);
     } else if (session.provider === 'google') {
-      subscription = await createGoogleMailSubscription(session.accessToken, session.user.email);
+      subscription = await createGoogleMailSubscription(session.accessToken, session.email);
     }
-    
+
     if (!subscription) {
       throw new Error('Failed to create subscription');
     }
 
+    console.log('Subscription created:', subscription);
+
     // Store complete subscription details
     await prisma.userSubscription.upsert({
-      where: { userId: session.user.email },
-      update: { 
+      where: { userId: session.email },
+      //where: { userId: session.user.email },
+      update: {
         isSubscribed: true,
-        // provider: session.provider,
+        provider: session.provider,
         webhookId: subscription.id,
+        googleHistoryId: subscription.id,
         webhookExpiresAt: new Date(subscription.expirationDateTime),
         lastWebhookRenewal: new Date(),
       },
-      create: { 
-        userId: session.user.email,
+      create: {
+        userId: session.email,
+        //userId: session.user.email,
         isSubscribed: true,
-        // provider: session.provider,
+        provider: session.provider,
         webhookId: subscription.id,
+        googleHistoryId: subscription.id,
         webhookExpiresAt: new Date(subscription.expirationDateTime),
         lastWebhookRenewal: new Date(),
       }
@@ -85,7 +97,7 @@ export async function POST() {
     return NextResponse.json({ isSubscribed: true });
   } catch (error) {
     console.error('Error creating subscription:', error instanceof Error ? error.message : error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to create subscription',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
@@ -107,20 +119,20 @@ export async function DELETE() {
     });
 
     await deleteExistingSubscriptions(client);
-    
+
     await prismaClient.userSubscription.upsert({
       where: { userId: session.user.email },
       update: { isSubscribed: false },
-      create: { 
+      create: {
         userId: session.user.email,
-        isSubscribed: false 
+        isSubscribed: false
       }
     });
 
     return NextResponse.json({ isSubscribed: false });
   } catch (error) {
     console.error('Error deleting subscription:', error instanceof Error ? error.message : error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to delete subscription',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });

@@ -14,7 +14,7 @@ export async function deleteExistingSubscriptions(client: Client) {
   try {
     const subscriptions = await client.api('/subscriptions').get();
     console.log('Found existing subscriptions:', subscriptions.value.length);
-    
+
     for (const sub of subscriptions.value) {
       console.log(`Deleting subscription: ${sub.id}`);
       await client.api(`/subscriptions/${sub.id}`).delete();
@@ -27,6 +27,7 @@ export async function deleteExistingSubscriptions(client: Client) {
 // DELETE existing subscriptions (Google)
 export async function deleteGoogleSubscriptions(auth: any, userId: string) {
   try {
+    console.log('Deleting Google subscriptions for:', userId);
     const gmail = google.gmail({ version: 'v1', auth });
     const watchResponse = await gmail.users.stop({ userId: 'me' });
     console.log(`Stopped Google Watch for ${userId}:`, watchResponse.data);
@@ -83,7 +84,7 @@ export async function createGoogleMailSubscription(accessToken: string, userId: 
   try {
     const auth = new google.auth.OAuth2();
     auth.setCredentials({ access_token: accessToken });
-
+    console.log('Auth successfull:', auth);
     await deleteGoogleSubscriptions(auth, userId);
 
     const gmail = google.gmail({ version: 'v1', auth });
@@ -160,7 +161,7 @@ export async function checkAndRenewSubscriptions(accessToken: string, forceRenew
         console.log(`Processing subscription for ${subscription.userId}`);
         const renewed = await renewSubscription(accessToken, subscription.webhookId);
         console.log(`Renewal ${renewed ? 'succeeded' : 'failed'}`);
-        
+
         if (!renewed) {
           console.log('Attempting to create new subscription');
           const newSubscription = await createMailSubscription(accessToken);

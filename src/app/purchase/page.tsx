@@ -13,31 +13,31 @@ export default function PurchasePage() {
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    try {
-      const res = await fetch('/api/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
+    // setLoading(true)
+    // try {
+    //   const res = await fetch('/api/subscriptions', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     }
+    //   })
 
-      // if (!res.ok) throw new Error('Failed to purchase')
-      
-    } catch (err) {
-      console.log(err)
-      // setError(err instanceof Error ? err.message : 'Failed to create folder')
-    } finally {
-      setLoading(false)
-    }
+    //   // if (!res.ok) throw new Error('Failed to purchase')
+
+    // } catch (err) {
+    //   console.log(err)
+    //   // setError(err instanceof Error ? err.message : 'Failed to create folder')
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   return (
     <div className="min-h-screen bg-background">
       <Nav />
-      
+
       <div className="container max-w-6xl mx-auto px-4 py-8">
-        <Link 
+        <Link
           href="/"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
         >
@@ -57,12 +57,12 @@ export default function PurchasePage() {
 
             <div className="border rounded-lg p-6 space-y-4">
               <h2 className="text-xl font-semibold">Order Summary</h2>
-              
+
               <div className="flex justify-between py-4 border-b">
                 <span>Monthly License</span>
                 <span className="font-semibold">$15.00</span>
               </div>
-              
+
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
                 <span>$15.00 USD</span>
@@ -100,8 +100,8 @@ export default function PurchasePage() {
               </div>
 
               <div className="pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   size="lg"
                   disabled={loading}
